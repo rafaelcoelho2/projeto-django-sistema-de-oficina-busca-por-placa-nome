@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Operação - Oficina</title>
+    {% load static %}
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url("{% static 'img/operacao.png' %}"); /* Sua imagem de caveira */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace; /* Fonte estilo máquina de escrever/militar */
+        }
+
+        /* Camada escura para melhorar leitura sobre a imagem de fundo */
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.85);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .dossier-container {
+            background: #1a1a1a;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #444;
+            border-top: 4px solid #28a745; /* Topo verde tático */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            position: relative;
+        }
+
+        /* Detalhe visual de "Parafusos" nos cantos */
+        .dossier-container::before, .dossier-container::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #555;
+            box-shadow: inset 1px 1px 2px black;
+        }
+        .dossier-container::before { left: 10px; }
+        .dossier-container::after { right: 10px; }
+
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 15px;
+            margin-top: 0;
+            color: #fff;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* Estilização dos Inputs */
+        select, textarea, input[type="text"] {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            color: #0f0; /* Texto verde terminal */
+            padding: 12px;
+            font-family: inherit;
+            box-sizing: border-box; /* Garante que padding não quebre largura */
+        }
+
+        select:focus, textarea:focus, input:focus {
+            outline: none;
+            border-color: #28a745;
+            background: #000;
+        }
+
+        /* Área de Upload Personalizada */
+        .upload-area {
+            border: 2px dashed #444;
+            padding: 15px;
+            text-align: center;
+            background: #111;
+            margin-top: 5px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #666;
+            background: #161616;
+        }
+
+        input[type="file"] {
+            display: none; /* Esconde o input feio padrão */
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 8px 15px;
+            cursor: pointer;
+            background: #333;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* Pré-visualização da imagem */
+        .img-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            display: none; /* Escondido até ter foto */
+            border: 1px solid #333;
+        }
+
+        /* Botões de Ação */
+        .btn-group {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button[type="submit"] {
+            flex: 2;
+            background: #28a745; /* Verde Tático */
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background: #1e7e34;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: #dc3545; /* Vermelho Alerta */
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            padding: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .btn-cancel:hover {
+            background: #a71d2a;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="dossier-container">
+        <h2>Relatório de Serviço</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div>
+                <label>VEÍCULO ALVO:</label>
+                {{ form.veiculo }}
+            </div>
+
+            <div>
+                <label>DESCRIÇÃO DA OPERAÇÃO:</label>
+                {{ form.descricao }}
+            </div>
+
+            <div>
+                <label>📸 FOTO DO SERVIÇO:</label>
+                <div class="upload-area">
+                    <label for="id_foto_servico" class="custom-file-upload">
+                        Selecionar / Câmera
+                    </label>
+                    <input type="file" name="foto_servico" accept="image/*" id="id_foto_servico" onchange="previewImage(this, 'preview-servico')">
+                    <br>
+                    <img id="preview-servico" class="img-preview" alt="Prévia Serviço">
+                </div>
+            </div>
+
+            <div>
+                <label>🚗 FOTO DO VEÍCULO:</label>
+                <div class="upload-area">
+                    <label for="id_foto_carro" class="custom-file-upload">
+                        Selecionar / Câmera
+                    </label>
+                    <input type="file" name="foto_carro" accept="image/*" id="id_foto_carro" onchange="previewImage(this, 'preview-carro')">
+                    <br>
+                    <img id="preview-carro" class="img-preview" alt="Prévia Carro">
+                </div>
+            </div>
+
+            <div>
+                <label>🆔 FOTO DA PLACA:</label>
+                <div class="upload-area">
+                    <label for="id_foto_placa" class="custom-file-upload">
+                        Selecionar / Câmera
+                    </label>
+                    <input type="file" name="foto_placa" accept="image/*" id="id_foto_placa" onchange="previewImage(this, 'preview-placa')">
+                    <br>
+                    <img id="preview-placa" class="img-preview" alt="Prévia Placa">
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <a href="{% url 'home' %}" class="btn-cancel">Abortar</a>
+                <button type="submit">CONFIRMAR DADOS</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    // Função JavaScript para mostrar a foto assim que for selecionada
+    function previewImage(input, previewId) {
+        var preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block'; // Mostra a imagem
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

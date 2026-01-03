@@ -1,0 +1,28 @@
+from django import forms
+from .models import Cliente, Veiculo, Servico
+
+# 1. Formulário de Cliente
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        # REMOVIDO 'email' porque ele não está no seu models.py atual
+        fields = ['nome', 'telefone'] 
+
+# 2. Formulário de Veículo
+class VeiculoForm(forms.ModelForm):
+    class Meta:
+        model = Veiculo
+        # ADICIONADO 'obs_gerais' para bater com o campo de observações que criamos
+        fields = ['cliente', 'modelo', 'placa', 'foto_carro', 'obs_gerais'] 
+        widgets = {
+            'placa': forms.TextInput(attrs={'placeholder': 'Ex: ABC1234', 'class': 'form-control'}),
+            'obs_gerais': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        }
+
+# 3. Formulário de Serviço
+class ServicoForm(forms.ModelForm):
+    class Meta:
+        model = Servico
+        # AJUSTADO: Se no seu model o campo é 'foto_local_servico', use ele aqui.
+        # Se você quiser usar 'valor', precisa adicionar o campo 'valor' no models.py primeiro.
+        fields = ['veiculo', 'descricao', 'foto_local_servico']

@@ -1,0 +1,69 @@
+{% extends "oficina/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Resultados para: "{{ query }}"</h2>
+    <hr>
+
+    {% for veiculo in veiculos %}
+        <div class="card mb-5 shadow border-primary">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span><strong>VEÍCULO:</strong> {{ veiculo.modelo|upper }}</span>
+                <span><strong>PLACA:</strong> {{ veiculo.placa|upper }}</span>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 border-end">
+                        <p class="text-center">
+                            {% if veiculo.foto_carro %}
+                                <img src="{{ veiculo.foto_carro.url }}" class="img-thumbnail" style="max-height: 250px;">
+                            {% else %}
+                                <span class="badge bg-secondary">Sem foto do veículo</span>
+                            {% endif %}
+                        </p>
+                        <h5 class="text-primary">Dono: {{ veiculo.cliente.nome }}</h5>
+                        <p><strong>📞 Telefone:</strong> {{ veiculo.cliente.telefone }}</p>
+                        
+                        <div class="alert alert-info mt-2">
+                            <h6>📝 Obs. Técnicas:</h6>
+                            <p class="small">{{ veiculo.obs_gerais|default:"Nenhuma observação." }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <h5 class="mb-3">🛠️ Histórico de Manutenções</h5>
+                        {% for servico in veiculo.servico_set.all %}
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <p><strong>📅 Data:</strong> {{ servico.data|date:"d/m/Y - H:i" }}</p>
+                                        <p><strong>👷 Mecânico:</strong> {{ servico.mecanico }}</p>
+                                        <p><strong>📋 Descrição:</strong> {{ servico.descricao }}</p>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        {% if servico.foto_local_servico %}
+                                            <p class="small mb-1">Foto do Serviço:</p>
+                                            <img src="{{ servico.foto_local_servico.url }}" class="img-fluid rounded shadow-sm" style="max-height: 120px;">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">Nenhum serviço registrado para este veículo.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-warning text-center">
+            Nenhum resultado para "{{ query }}". Verifique a placa ou o nome.
+        </div>
+    {% endfor %}
+    
+    <div class="text-center mb-5">
+        <a href="{% url 'buscar' %}" class="btn btn-secondary">Voltar para a Busca</a>
+    </div>
+</div>
+{% endblock %}
