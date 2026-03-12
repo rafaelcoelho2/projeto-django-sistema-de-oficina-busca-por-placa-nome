@@ -26,24 +26,32 @@
                         <p><strong>📞 Telefone:</strong> {{ veiculo.cliente.telefone }}</p>
                         
                         <div class="alert alert-info mt-2">
-                            <h6>📝 Obs. Técnicas:</h6>
-                            <p class="small">{{ veiculo.obs_gerais|default:"Nenhuma observação." }}</p>
+                            <h6>📝 Obs. Técnicas do Veículo:</h6>
+                            <p class="small">{{ veiculo.obs_gerais|default:"Nenhuma observação permanente." }}</p>
                         </div>
                     </div>
 
                     <div class="col-md-8">
-                        <h5 class="mb-3">🛠️ Histórico de Manutenções</h5>
+                        <h5 class="mb-3">🛠️ Histórico de Manutenções (Relatórios)</h5>
                         {% for servico in veiculo.servico_set.all %}
                             <div class="border rounded p-3 mb-3 bg-light">
                                 <div class="row">
                                     <div class="col-md-8">
                                         <p><strong>📅 Data:</strong> {{ servico.data|date:"d/m/Y - H:i" }}</p>
-                                        <p><strong>👷 Mecânico:</strong> {{ servico.mecanico }}</p>
+                                        <p><strong>👷 Mecânico:</strong> {{ servico.mecanico.nome }}</p>
                                         <p><strong>📋 Descrição:</strong> {{ servico.descricao }}</p>
+                                        
+                                        {% if servico.observacao_servico %}
+                                        <div class="mt-2 p-2 bg-white border-start border-4 border-success">
+                                            <strong class="text-dark small" style="font-family: 'Courier New', monospace;">> NOTAS DE INTELIGÊNCIA:</strong>
+                                            <p class="mb-0 small text-muted">{{ servico.observacao_servico }}</p>
+                                        </div>
+                                        {% endif %}
                                     </div>
+
                                     <div class="col-md-4 text-center">
                                         {% if servico.foto_local_servico %}
-                                            <p class="small mb-1">Foto do Serviço:</p>
+                                            <p class="small mb-1">Registro da Operação:</p>
                                             <img src="{{ servico.foto_local_servico.url }}" class="img-fluid rounded shadow-sm" style="max-height: 120px;">
                                         {% endif %}
                                     </div>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Monitoramento de Agentes</title>
+    {% load static %}
+    <style>
+        body {
+            background-color: #050505;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background-image: linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.92)), url("{% static 'img/operacao.png' %}");
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .monitor-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 1px solid #28a745;
+            padding: 30px;
+            background: rgba(10, 10, 10, 0.95);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+        }
+
+        .header-painel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 { 
+            margin: 0; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            font-size: 1.5rem;
+        }
+
+        .btn-acao {
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 10px 20px;
+            border: 1px solid #0f0;
+            transition: 0.3s;
+        }
+
+        .btn-voltar { color: #888; border-color: #444; }
+        .btn-voltar:hover { color: #fff; border-color: #fff; }
+
+        .btn-recrutar { background: #0f0; color: #000; }
+        .btn-recrutar:hover { background: #000; color: #0f0; box-shadow: 0 0 10px #0f0; }
+
+        /* TABELA DE AGENTES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            text-align: left;
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        td {
+            padding: 20px 10px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .agente-nome {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .status-online {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #0f0;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 5px #0f0;
+        }
+
+        .missao-count {
+            background: #222;
+            padding: 5px 15px;
+            border: 1px solid #28a745;
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 50px;
+            color: #dc3545;
+            border: 1px dashed #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="monitor-container">
+        <div class="header-painel">
+            <a href="{% url 'home' %}" class="btn-acao btn-voltar">< VOLTAR AO QG</a>
+            <h1>Monitoramento de Agentes</h1>
+            <a href="{% url 'recrutar_agente' %}" class="btn-acao btn-recrutar">+ RECRUTAR AGENTE</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>IDENTIFICAÇÃO DO AGENTE</th>
+                    <th style="text-align: center;">MISSÕES CONCLUÍDAS</th>
+                    <th style="text-align: right;">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agente in agentes %}
+                <tr>
+                    <td>
+                        <div class="agente-nome">{{ agente.nome|upper }}</div>
+                        <span style="font-size: 0.6rem; color: #555;">ID: #00{{ agente.id }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="missao-count">{{ agente.total_servicos }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <span class="status-online"></span>
+                        <span style="font-size: 0.8rem;">ATIVO</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="empty-msg">
+                        NENHUM AGENTE RECRUTADO NO SISTEMA. ACESSE O MÓDULO DE RECRUTAMENTO.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

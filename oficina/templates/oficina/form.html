@@ -1,28 +1,46 @@
 from django import forms
-from .models import Cliente, Veiculo, Servico
+from .models import Cliente, Veiculo, Servico, Mecanico
 
 # 1. Formulário de Cliente
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        # REMOVIDO 'email' porque ele não está no seu models.py atual
-        fields = ['nome', 'telefone'] 
+        fields = ['nome', 'telefone']
 
 # 2. Formulário de Veículo
 class VeiculoForm(forms.ModelForm):
     class Meta:
         model = Veiculo
-        # ADICIONADO 'obs_gerais' para bater com o campo de observações que criamos
         fields = ['cliente', 'modelo', 'placa', 'foto_carro', 'obs_gerais'] 
         widgets = {
-            'placa': forms.TextInput(attrs={'placeholder': 'Ex: ABC1234', 'class': 'form-control'}),
-            'obs_gerais': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'placa': forms.TextInput(attrs={'placeholder': 'EX: ABC1234'}),
+            'obs_gerais': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Danos prévios ou detalhes fixos...'}),
         }
 
-# 3. Formulário de Serviço
+# 3. Formulário de Serviço (FOCO NO MECÂNICO)
 class ServicoForm(forms.ModelForm):
     class Meta:
         model = Servico
-        # AJUSTADO: Se no seu model o campo é 'foto_local_servico', use ele aqui.
-        # Se você quiser usar 'valor', precisa adicionar o campo 'valor' no models.py primeiro.
-        fields = ['veiculo', 'descricao', 'foto_local_servico']
+        # 'mecanico' incluído para aparecer tanto na criação quanto na edição
+        fields = ['veiculo', 'mecanico', 'descricao', 'observacao_servico', 'foto_local_servico']
+        
+        widgets = {
+            'veiculo': forms.Select(attrs={
+                'class': 'tatico-select',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'mecanico': forms.Select(attrs={
+                'class': 'tatico-select',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'descricao': forms.Textarea(attrs={
+                'rows': 3, 
+                'placeholder': 'RELATÓRIO TÉCNICO: Detalhe a operação realizada...',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'observacao_servico': forms.Textarea(attrs={
+                'rows': 2, 
+                'placeholder': 'NOTAS PARA O CLIENTE: Próximas manutenções, prazos...',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+        }

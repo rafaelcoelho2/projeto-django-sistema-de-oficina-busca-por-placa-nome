@@ -56,6 +56,8 @@
         }
 
         label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
         }
 
@@ -65,6 +67,7 @@
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #aaa;
+            box-sizing: border-box; /* Adicionado para manter o padrão de largura */
         }
 
         button {
@@ -87,6 +90,7 @@
             text-align: center;
             margin-top: 20px;
             text-decoration: none;
+            color: #007bff;
         }
     </style>
 
@@ -110,7 +114,6 @@
         <div id="tab-veiculo" class="tab" onclick="showTab('veiculo')">Veículo</div>
     </div>
 
-    <!-- FORMULÁRIO CLIENTE -->
     <div id="cliente" class="form-box active">
         <h2>Cadastrar Cliente</h2>
 
@@ -121,13 +124,32 @@
         </form>
     </div>
 
-    <!-- FORMULÁRIO VEÍCULO -->
     <div id="veiculo" class="form-box">
         <h2>Cadastrar Veículo</h2>
 
         <form method="POST" enctype="multipart/form-data" action="{% url 'criar_veiculo' %}">
             {% csrf_token %}
-            {{ veiculo_form.as_p }}
+            
+            <div>
+                <label for="{{ veiculo_form.cliente.id_for_label }}">Dono do Veículo:</label>
+                {{ veiculo_form.cliente }}
+            </div>
+
+            <div>
+                <label for="{{ veiculo_form.modelo.id_for_label }}">Modelo:</label>
+                {{ veiculo_form.modelo }}
+            </div>
+
+            <div>
+                <label for="{{ veiculo_form.placa.id_for_label }}">Placa:</label>
+                {{ veiculo_form.placa }}
+            </div>
+
+            <div>
+                <label for="{{ veiculo_form.foto_carro.id_for_label }}">Foto do Veículo:</label>
+                {{ veiculo_form.foto_carro }}
+            </div>
+
             <button type="submit">Salvar Veículo</button>
         </form>
     </div>
@@ -138,5 +160,3 @@
 
 </body>
 </html>
-<!DOCTYPE html>
-<html lang="pt-br">
