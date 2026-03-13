@@ -1,22 +1,22 @@
 from pathlib import Path
 import os
-import dj_database_url # Importante: adicione isso ao requirements.txt
+
+# Tenta importar o dj_database_url para o Postgres. 
+# Se não estiver instalado (como no PC local), ele não trava o código.
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURANÇA ---
-# No Render, a SECRET_KEY deve vir de uma variável de ambiente
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--d5g)bd&l^ss5n*uv!3f1)s7(wbdyvdz(&lp%jga7fopfu%z75')
 
-# DEBUG deve ser False em produção
+# Em produção (Railway/Render), o DEBUG deve ser False
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# Permite o domínio do Render e o localhost
-ALLOWED_HOSTS = ['*'] # Em produção, substitua pelo seu link do Render
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
+ALLOWED_HOSTS = ['*'] 
 
 # --- APPS ---
 INSTALLED_APPS = [
@@ -26,13 +26,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'oficina', # Seu app
+    'oficina', 
 ]
 
-# --- MIDDLEWARE (WhiteNoise inserido aqui) ---
+# --- MIDDLEWARE (WhiteNoise essencial para o CSS no deploy) ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Essencial para o CSS no Render
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,15 +60,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-
-# --- BANCO DE DADOS (Híbrido: SQLite local / PostgreSQL no Render) ---
+# --- BANCO DE DADOS (Híbrido: SQLite local / Postgres no Railway/Render) ---
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
+# Se a biblioteca existir e houver uma URL de banco de dados nas variáveis de ambiente:
+if dj_database_url and os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True if not DEBUG else False # SSL obrigatório em produção
+    )
 
 # --- INTERNACIONALIZAÇÃO ---
 LANGUAGE_CODE = 'pt-br'
@@ -76,13 +82,11 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-
-# --- ARQUIVOS ESTÁTICOS (CONFIGURADOS PARA WHITENOISE) ---
+# --- ARQUIVOS ESTÁTICOS ---
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Armazenamento otimizado do WhiteNoise
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -92,7 +96,7 @@ STORAGES = {
     },
 }
 
-# --- ARQUIVOS DE MÍDIA (FOTOS DOS VEÍCULOS) ---
+# --- ARQUIVOS DE MÍDIA ---
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
