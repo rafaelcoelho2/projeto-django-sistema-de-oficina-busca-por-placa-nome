@@ -1,0 +1,46 @@
+from django import forms
+from .models import Cliente, Veiculo, Servico, Mecanico
+
+# 1. Formulário de Cliente
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['nome', 'telefone']
+
+# 2. Formulário de Veículo
+class VeiculoForm(forms.ModelForm):
+    class Meta:
+        model = Veiculo
+        fields = ['cliente', 'modelo', 'placa', 'foto_carro', 'obs_gerais'] 
+        widgets = {
+            'placa': forms.TextInput(attrs={'placeholder': 'EX: ABC1234'}),
+            'obs_gerais': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Danos prévios ou detalhes fixos...'}),
+        }
+
+# 3. Formulário de Serviço (FOCO NO MECÂNICO)
+class ServicoForm(forms.ModelForm):
+    class Meta:
+        model = Servico
+        # 'mecanico' incluído para aparecer tanto na criação quanto na edição
+        fields = ['veiculo', 'mecanico', 'descricao', 'observacao_servico', 'foto_local_servico']
+        
+        widgets = {
+            'veiculo': forms.Select(attrs={
+                'class': 'tatico-select',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'mecanico': forms.Select(attrs={
+                'class': 'tatico-select',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'descricao': forms.Textarea(attrs={
+                'rows': 3, 
+                'placeholder': 'RELATÓRIO TÉCNICO: Detalhe a operação realizada...',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+            'observacao_servico': forms.Textarea(attrs={
+                'rows': 2, 
+                'placeholder': 'NOTAS PARA O CLIENTE: Próximas manutenções, prazos...',
+                'style': 'background: #0f0f0f; color: #0f0; border: 1px solid #333;'
+            }),
+        }
