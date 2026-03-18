@@ -1,21 +1,15 @@
 from pathlib import Path
 import os
 import sys
-
-# Tenta importar o dj_database_url para o banco em produção (Railway/Render)
-try:
-    import dj_database_url 
-except ImportError:
-    dj_database_url = None
-
-# No PostgreSQL, não precisamos do pymysql. 
-# O Django usa a biblioteca 'psycopg2' nativamente.
+import dj_database_url  # Movido para o topo para garantir a importação
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURANÇA ---
+# No Railway, ele vai ler a SECRET_KEY que você colocou lá nas variáveis.
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--d5g)bd&l^ss5n*uv!3f1)s7(wbdyvdz(&lp%jga7fopfu%z75')
 
+# No Railway, mude a variável DEBUG para False para maior segurança.
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*'] 
@@ -62,23 +56,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-# --- BANCO DE DADOS (PostgreSQL local / Automático no Deploy) ---
+# --- BANCO DE DADOS ---
+# Configuração para rodar LOCAL (Computador)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'oficinas_db',           # Nome do banco que você deve criar no pgAdmin
-        'USER': 'postgres',              # Usuário padrão do PostgreSQL
-        'PASSWORD': ,    # <--- COLOQUE A SENHA QUE VOCÊ CRIOU NO POSTGRES AQUI
-        'HOST': '127.0.0.1',            
-        'PORT': '5432',                  # Porta padrão do Postgres
+        'NAME': 'oficinas_db',
+        'USER': 'postgres',
+        'PASSWORD': '123',  # Removi o erro de sintaxe aqui
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
-# Configuração automática para Deploy (Railway, Render, etc)
-if dj_database_url and os.environ.get('DATABASE_URL'):
+# Configuração automática para Deploy (Railway/PostgreSQL remoto)
+# Se o Railway fornecer a DATABASE_URL, o Django usará ela automaticamente.
+if os.environ.get('DATABASE_URL'):
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        ssl_require=True if not DEBUG else False 
+        conn_health_checks=True,
     )
 
 # --- INTERNACIONALIZAÇÃO ---
