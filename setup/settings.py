@@ -68,7 +68,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'oficinas_db',           # Nome do banco que você deve criar no pgAdmin
         'USER': 'postgres',              # Usuário padrão do PostgreSQL
-        'PASSWORD': 'SUA_SENHA_AQUI',    # <--- COLOQUE A SENHA QUE VOCÊ CRIOU NO POSTGRES AQUI
+        'PASSWORD': ,    # <--- COLOQUE A SENHA QUE VOCÊ CRIOU NO POSTGRES AQUI
         'HOST': '127.0.0.1',            
         'PORT': '5432',                  # Porta padrão do Postgres
     }
