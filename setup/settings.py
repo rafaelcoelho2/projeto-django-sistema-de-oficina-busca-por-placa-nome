@@ -1,19 +1,21 @@
 from pathlib import Path
 import os
+import sys
 
-# Tenta importar o dj_database_url para o Postgres. 
-# Se não estiver instalado (como no PC local), ele não trava o código.
+# Tenta importar o dj_database_url para o banco em produção (Railway/Render)
 try:
-    import dj_database_url
+    import dj_database_url 
 except ImportError:
     dj_database_url = None
+
+# No PostgreSQL, não precisamos do pymysql. 
+# O Django usa a biblioteca 'psycopg2' nativamente.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURANÇA ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--d5g)bd&l^ss5n*uv!3f1)s7(wbdyvdz(&lp%jga7fopfu%z75')
 
-# Em produção (Railway/Render), o DEBUG deve ser False
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*'] 
@@ -29,7 +31,7 @@ INSTALLED_APPS = [
     'oficina', 
 ]
 
-# --- MIDDLEWARE (WhiteNoise essencial para o CSS no deploy) ---
+# --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 
@@ -60,20 +62,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-# --- BANCO DE DADOS (Híbrido: SQLite local / Postgres no Railway/Render) ---
+# --- BANCO DE DADOS (PostgreSQL local / Automático no Deploy) ---
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'oficinas_db',           # Nome do banco que você deve criar no pgAdmin
+        'USER': 'postgres',              # Usuário padrão do PostgreSQL
+        'PASSWORD': 'SUA_SENHA_AQUI',    # <--- COLOQUE A SENHA QUE VOCÊ CRIOU NO POSTGRES AQUI
+        'HOST': '127.0.0.1',            
+        'PORT': '5432',                  # Porta padrão do Postgres
     }
 }
 
-# Se a biblioteca existir e houver uma URL de banco de dados nas variáveis de ambiente:
+# Configuração automática para Deploy (Railway, Render, etc)
 if dj_database_url and os.environ.get('DATABASE_URL'):
     DATABASES['default'] = dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True if not DEBUG else False # SSL obrigatório em produção
+        ssl_require=True if not DEBUG else False 
     )
 
 # --- INTERNACIONALIZAÇÃO ---

@@ -11,12 +11,15 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA
+# 3. RESULTADO DA BUSCA (Corrigido para PostgreSQL com related_name)
 def resultados(request):
     query = request.GET.get("q", "").strip()
+    
+    # IMPORTANTE: Mudamos 'servico_set' para 'servicos' porque 
+    # você definiu related_name='servicos' no seu model Servico.
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
-    ).select_related('cliente').prefetch_related('servico_set').distinct()
+    ).select_related('cliente').prefetch_related('servicos').distinct()
     
     return render(request, "oficina/resultados.html", {
         "veiculos": veiculos, 
@@ -29,7 +32,8 @@ def criar_servico(request):
         form = ServicoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('home')
+            # Redireciona para buscar para ver o resultado do novo serviço
+            return redirect('buscar')
     else:
         form = ServicoForm()
     return render(request, "oficina/servico_form.html", {"form": form})
@@ -40,23 +44,23 @@ def editar_servico(request, pk):
         form = ServicoForm(request.POST, request.FILES, instance=servico)
         if form.is_valid():
             form.save()
-            return redirect('home') 
+            return redirect('buscar') 
     else:
         form = ServicoForm(instance=servico)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE AGENTES (Estatísticas e Cadastro)
+# 5. GESTÃO DE MECÂNICOS (Painel de Estatísticas)
 def painel_agentes(request):
-    # Conta missões concluídas por cada mecânico
-    agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
+    # Ajustado 'servico' para 'servicos' (o related_name que criamos)
+    agentes = Mecanico.objects.annotate(total_servicos=Count('servicos'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
 def recrutar_agente(request):
-    """ Função para cadastrar novos mecânicos no sistema """
     if request.method == "POST":
         nome_agente = request.POST.get("nome")
+        especialidade = request.POST.get("especialidade")
         if nome_agente:
-            Mecanico.objects.create(nome=nome_agente) # Cria o registro no banco
+            Mecanico.objects.create(nome=nome_agente, especialidade=especialidade)
             return redirect('painel_agentes')
     return render(request, "oficina/cadastrar_mecanico.html")
 
@@ -72,7 +76,8 @@ def criar_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-    return redirect('cadastrar_tudo')
+    # Se o nome da sua URL de cadastro for 'mostrar_cadastro_unificado', use esse nome:
+    return redirect('cadastrar_tudo') 
 
 def criar_veiculo(request):
     if request.method == "POST":
