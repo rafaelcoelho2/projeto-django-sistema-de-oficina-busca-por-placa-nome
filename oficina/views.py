@@ -52,7 +52,7 @@ def editar_servico(request, pk):
 # 5. GESTÃO DE MECÂNICOS (Painel de Estatísticas)
 def painel_agentes(request):
     # Ajustado 'servico' para 'servicos' (o related_name que criamos)
-    agentes = Mecanico.objects.annotate(total_servicos=Count('servicos'))
+    agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
 def recrutar_agente(request):
