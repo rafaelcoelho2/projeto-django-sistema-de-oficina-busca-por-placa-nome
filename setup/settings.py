@@ -1,15 +1,13 @@
 from pathlib import Path
 import os
 import sys
-import dj_database_url  # Movido para o topo para garantir a importação
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SEGURANÇA ---
-# No Railway, ele vai ler a SECRET_KEY que você colocou lá nas variáveis.
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--d5g)bd&l^ss5n*uv!3f1)s7(wbdyvdz(&lp%jga7fopfu%z75')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-mude-isso-em-producao')
 
-# No Railway, mude a variável DEBUG para False para maior segurança.
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*'] 
@@ -56,26 +54,35 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-# --- BANCO DE DADOS ---
-# Configuração para rodar LOCAL (Computador)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'oficinas_db',
-        'USER': 'postgres',
-        'PASSWORD': '123',  # Removi o erro de sintaxe aqui
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
 
-# Configuração automática para Deploy (Railway/PostgreSQL remoto)
-# Se o Railway fornecer a DATABASE_URL, o Django usará ela automaticamente.
+# --- SEGURANÇA ADICIONAL ---
+# Isso diz ao Django que o endereço do Railway é seguro para receber dados de formulários
+CSRF_TRUSTED_ORIGINS = [
+    'https://projeto-django-sistema-de-oficina-busca-por-plac-production.up.railway.app',
+    'https://*.railway.app'
+]
+
+# --- BANCO DE DADOS (Lógica Invertida para Segurança) ---
 if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    # Se existe DATABASE_URL, estamos no RAILWAY
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Se NÃO existe, estamos no COMPUTADOR LOCAL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'oficinas_db',
+            'USER': 'postgres',
+            'PASSWORD': '123', 
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
+    }
 
 # --- INTERNACIONALIZAÇÃO ---
 LANGUAGE_CODE = 'pt-br'
