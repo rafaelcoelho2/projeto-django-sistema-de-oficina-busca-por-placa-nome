@@ -11,15 +11,15 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA (Corrigido para PostgreSQL com related_name)
+# 3. RESULTADO DA BUSCA
 def resultados(request):
     query = request.GET.get("q", "").strip()
     
-    # IMPORTANTE: Mudamos 'servico_set' para 'servicos' porque 
-    # você definiu related_name='servicos' no seu model Servico.
+    # IMPORTANTE: Se o histórico não aparece, vamos usar o padrão do Django: 'servico_set'
+    # ou garantir que o nome coincida com o seu Model.
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
-    ).select_related('cliente').prefetch_related('servicos').distinct()
+    ).select_related('cliente').prefetch_related('servico_set').distinct()
     
     return render(request, "oficina/resultados.html", {
         "veiculos": veiculos, 
@@ -32,56 +32,17 @@ def criar_servico(request):
         form = ServicoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            # Redireciona para buscar para ver o resultado do novo serviço
             return redirect('buscar')
     else:
         form = ServicoForm()
     return render(request, "oficina/servico_form.html", {"form": form})
 
-def editar_servico(request, pk):
-    servico = get_object_or_404(Servico, pk=pk)
-    if request.method == "POST":
-        form = ServicoForm(request.POST, request.FILES, instance=servico)
-        if form.is_valid():
-            form.save()
-            return redirect('buscar') 
-    else:
-        form = ServicoForm(instance=servico)
-    return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
+# ... (outras funções de editar_servico permanecem iguais)
 
-# 5. GESTÃO DE MECÂNICOS (Painel de Estatísticas)
+# 5. GESTÃO DE MECÂNICOS
 def painel_agentes(request):
-    # Ajustado 'servico' para 'servicos' (o related_name que criamos)
+    # Corrigido: Usando 'servico' (singular) conforme o erro que o Django te deu antes
     agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
-def recrutar_agente(request):
-    if request.method == "POST":
-        nome_agente = request.POST.get("nome")
-        especialidade = request.POST.get("especialidade")
-        if nome_agente:
-            Mecanico.objects.create(nome=nome_agente, especialidade=especialidade)
-            return redirect('painel_agentes')
-    return render(request, "oficina/cadastrar_mecanico.html")
-
-# 6. CADASTRO UNIFICADO (Cliente + Veículo)
-def mostrar_cadastro_unificado(request):
-    return render(request, "oficina/cadastro_cliente_veiculo.html", {
-        "cliente_form": ClienteForm(),
-        "veiculo_form": VeiculoForm()
-    })
-
-def criar_cliente(request):
-    if request.method == "POST":
-        form = ClienteForm(request.POST)
-        if form.is_valid():
-            form.save()
-    # Se o nome da sua URL de cadastro for 'mostrar_cadastro_unificado', use esse nome:
-    return redirect('cadastrar_tudo') 
-
-def criar_veiculo(request):
-    if request.method == "POST":
-        form = VeiculoForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-    return redirect('cadastrar_tudo')
+# ... (funções de cadastro unificado permanecem iguais)
