@@ -11,12 +11,11 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA
+# 3. RESULTADO DA BUSCA (Ajustado para o histórico aparecer)
 def resultados(request):
     query = request.GET.get("q", "").strip()
     
-    # IMPORTANTE: Se o histórico não aparece, vamos usar o padrão do Django: 'servico_set'
-    # ou garantir que o nome coincida com o seu Model.
+    # Usamos servico_set para garantir que o Django ache a relação
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
     ).select_related('cliente').prefetch_related('servico_set').distinct()
@@ -26,7 +25,7 @@ def resultados(request):
         "query": query
     })
 
-# 4. OPERAÇÕES DE SERVIÇO (Criação e Edição)
+# 4. OPERAÇÕES DE SERVIÇO
 def criar_servico(request):
     if request.method == "POST":
         form = ServicoForm(request.POST, request.FILES)
@@ -37,12 +36,49 @@ def criar_servico(request):
         form = ServicoForm()
     return render(request, "oficina/servico_form.html", {"form": form})
 
-# ... (outras funções de editar_servico permanecem iguais)
+def editar_servico(request, pk):
+    servico = get_object_or_404(Servico, pk=pk)
+    if request.method == "POST":
+        form = ServicoForm(request.POST, request.FILES, instance=servico)
+        if form.is_valid():
+            form.save()
+            return redirect('buscar') 
+    else:
+        form = ServicoForm(instance=servico)
+    return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE MECÂNICOS
+# 5. GESTÃO DE MECÂNICOS (Aqui estava o erro do Railway!)
 def painel_agentes(request):
-    # Corrigido: Usando 'servico' (singular) conforme o erro que o Django te deu antes
     agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
-# ... (funções de cadastro unificado permanecem iguais)
+# FUNÇÃO QUE ESTAVA FALTANDO E CAUSANDO O ERRO:
+def recrutar_agente(request):
+    if request.method == "POST":
+        nome_agente = request.POST.get("nome")
+        especialidade = request.POST.get("especialidade")
+        if nome_agente:
+            Mecanico.objects.create(nome=nome_agente, especialidade=especialidade)
+            return redirect('painel_agentes')
+    return render(request, "oficina/cadastrar_mecanico.html")
+
+# 6. CADASTRO UNIFICADO
+def mostrar_cadastro_unificado(request):
+    return render(request, "oficina/cadastro_cliente_veiculo.html", {
+        "cliente_form": ClienteForm(),
+        "veiculo_form": VeiculoForm()
+    })
+
+def criar_cliente(request):
+    if request.method == "POST":
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return redirect('mostrar_cadastro_unificado') 
+
+def criar_veiculo(request):
+    if request.method == "POST":
+        form = VeiculoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+    return redirect('mostrar_cadastro_unificado')
