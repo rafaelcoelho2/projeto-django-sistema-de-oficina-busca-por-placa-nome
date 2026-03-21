@@ -43,23 +43,27 @@
                     <div class="col-md-8">
                         <h5 class="mb-3 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-tools"></i> Histórico de Manutenções</span>
-                            <span class="badge bg-secondary rounded-pill small">{{ veiculo.servico_set.count }} registros</span>
+                            {# Ajuste de segurança para contagem #}
+                            <span class="badge bg-secondary rounded-pill small">
+                                {{ veiculo.servico_set.all.count }} registros
+                            </span>
                         </h5>
 
                         <div style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
+                            {# Loop do Histórico #}
                             {% for servico in veiculo.servico_set.all %}
-                                <div class="card mb-3 border-start border-4 border-primary">
+                                <div class="card mb-3 border-start border-4 border-primary shadow-sm">
                                     <div class="card-body p-3">
                                         <div class="row align-items-center">
                                             <div class="col-md-8">
                                                 <div class="d-flex justify-content-between mb-2">
-                                                    <span class="fw-bold"><i class="bi bi-calendar-event"></i> {{ servico.data|date:"d/m/Y - H:i" }}</span>
-                                                    <span class="text-muted small">Resp: <strong>{{ servico.mecanico.nome }}</strong></span>
+                                                    <span class="fw-bold text-primary"><i class="bi bi-calendar-event"></i> {{ servico.data|date:"d/m/Y - H:i" }}</span>
+                                                    <span class="text-muted small">Mecânico: <strong>{{ servico.mecanico.nome|default:"Não informado" }}</strong></span>
                                                 </div>
                                                 <p class="mb-2 text-dark"><strong>Descrição:</strong> {{ servico.descricao }}</p>
                                                 
                                                 {% if servico.observacao_servico %}
-                                                    <div class="p-2 bg-light border rounded small" style="font-family: 'Courier New', Courier, monospace;">
+                                                    <div class="p-2 bg-light border rounded small" style="font-family: 'Courier New', Courier, monospace; border-left: 3px solid #198754 !important;">
                                                         <span class="text-success fw-bold">> NOTAS TÉCNICAS:</span><br>
                                                         {{ servico.observacao_servico }}
                                                     </div>
@@ -68,18 +72,29 @@
 
                                             <div class="col-md-4 text-center mt-2 mt-md-0">
                                                 {% if servico.foto_local_servico %}
-                                                    <img src="{{ servico.foto_local_servico.url }}" class="img-fluid rounded shadow-sm border" style="max-height: 100px; cursor: pointer;" title="Clique para ampliar">
+                                                    <a href="{{ servico.foto_local_servico.url }}" target="_blank">
+                                                        <img src="{{ servico.foto_local_servico.url }}" class="img-fluid rounded shadow-sm border" style="max-height: 120px; object-fit: cover;" title="Clique para ver em tamanho real">
+                                                    </a>
                                                 {% else %}
-                                                    <div class="text-muted small border rounded p-2">Sem foto da operação</div>
+                                                    <div class="text-muted border rounded p-2 small bg-white">
+                                                        <i class="bi bi-image"></i><br>Sem foto da operação
+                                                    </div>
                                                 {% endif %}
                                             </div>
+                                        </div>
+                                        {# Botão de Edição Rápida #}
+                                        <div class="text-end mt-2">
+                                            <a href="{% url 'editar_servico' servico.id %}" class="btn btn-sm btn-link p-0 text-decoration-none text-muted">
+                                                <i class="bi bi-pencil"></i> Editar este registro
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
                             {% empty %}
-                                <div class="text-center py-4 text-muted border rounded bg-light">
-                                    <i class="bi bi-info-circle fs-4"></i>
-                                    <p class="mb-0 mt-2">Nenhum serviço registrado para este veículo até o momento.</p>
+                                <div class="text-center py-5 text-muted border rounded bg-light shadow-sm">
+                                    <i class="bi bi-clipboard-x fs-1 d-block mb-3"></i>
+                                    <p class="mb-0">Este veículo ainda não possui histórico de serviços no sistema.</p>
+                                    <a href="{% url 'criar_servico' %}" class="btn btn-primary btn-sm mt-3">Registrar Primeiro Serviço</a>
                                 </div>
                             {% endfor %}
                         </div>
@@ -88,15 +103,15 @@
             </div>
         </div>
     {% empty %}
-        <div class="alert alert-warning text-center shadow-sm">
-            <i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>
+        <div class="alert alert-warning text-center shadow-sm py-5">
+            <i class="bi bi-search fs-1 d-block mb-3"></i>
             Nenhum resultado encontrado para "<strong>{{ query }}</strong>".<br>
-            Verifique se a placa está correta ou se o cliente está cadastrado.
+            Tente buscar pela placa completa ou pelo nome do proprietário.
         </div>
     {% endfor %}
     
     <div class="text-center mt-4 mb-5">
-        <a href="{% url 'buscar' %}" class="btn btn-secondary px-4">Nova Busca</a>
+        <a href="{% url 'buscar' %}" class="btn btn-secondary px-5 shadow-sm">Voltar para Busca</a>
     </div>
 </div>
 {% endblock %}
