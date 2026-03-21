@@ -11,23 +11,21 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA (Corrigido para evitar o erro de 'servico_set')
+# 3. RESULTADO DA BUSCA (Ajustado para o histórico aparecer)
 def resultados(request):
     query = request.GET.get("q", "").strip()
     
-    # Filtramos os veículos pela placa ou nome do cliente.
-    # REMOVIDO o .prefetch_related('servico_set') que causava o erro no Railway.
-    # O Django carregará os serviços automaticamente através do seu HTML.
+    # Usamos servico_set para garantir que o Django ache a relação
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
-    ).select_related('cliente').distinct()
+    ).select_related('cliente').prefetch_related('servico_set').distinct()
     
     return render(request, "oficina/resultados.html", {
         "veiculos": veiculos, 
         "query": query
     })
 
-# 4. OPERAÇÕES DE SERVIÇO (Criação e Edição)
+# 4. OPERAÇÕES DE SERVIÇO
 def criar_servico(request):
     if request.method == "POST":
         form = ServicoForm(request.POST, request.FILES)
@@ -49,12 +47,12 @@ def editar_servico(request, pk):
         form = ServicoForm(instance=servico)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE MECÂNICOS (Agentes)
+# 5. GESTÃO DE MECÂNICOS (Aqui estava o erro do Railway!)
 def painel_agentes(request):
-    # 'servico' no singular para contar as manutenções de cada mecânico
     agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
+# FUNÇÃO QUE ESTAVA FALTANDO E CAUSANDO O ERRO:
 def recrutar_agente(request):
     if request.method == "POST":
         nome_agente = request.POST.get("nome")
@@ -64,7 +62,7 @@ def recrutar_agente(request):
             return redirect('painel_agentes')
     return render(request, "oficina/cadastrar_mecanico.html")
 
-# 6. CADASTRO UNIFICADO (Clientes e Veículos)
+# 6. CADASTRO UNIFICADO
 def mostrar_cadastro_unificado(request):
     return render(request, "oficina/cadastro_cliente_veiculo.html", {
         "cliente_form": ClienteForm(),
