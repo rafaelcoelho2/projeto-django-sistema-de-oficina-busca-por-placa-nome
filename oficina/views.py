@@ -11,14 +11,15 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA (Ajustado para o histórico aparecer)
+# 3. RESULTADO DA BUSCA (Ajustado para não dar AttributeError)
 def resultados(request):
     query = request.GET.get("q", "").strip()
     
-    # Usamos servico_set para garantir que o Django ache a relação
+    # Removido o prefetch_related que estava dando erro de atributo no Railway.
+    # O Django buscará o histórico no template automaticamente.
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
-    ).select_related('cliente').prefetch_related('servico_set').distinct()
+    ).select_related('cliente').distinct()
     
     return render(request, "oficina/resultados.html", {
         "veiculos": veiculos, 
@@ -47,12 +48,12 @@ def editar_servico(request, pk):
         form = ServicoForm(instance=servico)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE MECÂNICOS (Aqui estava o erro do Railway!)
+# 5. GESTÃO DE MECÂNICOS
 def painel_agentes(request):
+    # Usando Count('servico') conforme a estrutura do seu banco
     agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
-# FUNÇÃO QUE ESTAVA FALTANDO E CAUSANDO O ERRO:
 def recrutar_agente(request):
     if request.method == "POST":
         nome_agente = request.POST.get("nome")
