@@ -11,12 +11,13 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA
+# 3. RESULTADO DA BUSCA (Corrigido para evitar o erro de 'servico_set')
 def resultados(request):
     query = request.GET.get("q", "").strip()
     
-    # REMOVIDO o prefetch_related que causava erro de atributo.
-    # O Django buscará os serviços no template via veiculo.servico_set.all
+    # Filtramos os veículos pela placa ou nome do cliente.
+    # REMOVIDO o .prefetch_related('servico_set') que causava o erro no Railway.
+    # O Django carregará os serviços automaticamente através do seu HTML.
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query)
     ).select_related('cliente').distinct()
@@ -48,9 +49,9 @@ def editar_servico(request, pk):
         form = ServicoForm(instance=servico)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE MECÂNICOS
+# 5. GESTÃO DE MECÂNICOS (Agentes)
 def painel_agentes(request):
-    # 'servico' no singular para contar as chaves estrangeiras corretamente
+    # 'servico' no singular para contar as manutenções de cada mecânico
     agentes = Mecanico.objects.annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
@@ -63,7 +64,7 @@ def recrutar_agente(request):
             return redirect('painel_agentes')
     return render(request, "oficina/cadastrar_mecanico.html")
 
-# 6. CADASTRO UNIFICADO
+# 6. CADASTRO UNIFICADO (Clientes e Veículos)
 def mostrar_cadastro_unificado(request):
     return render(request, "oficina/cadastro_cliente_veiculo.html", {
         "cliente_form": ClienteForm(),
