@@ -11,17 +11,17 @@ urlpatterns = [
     
     # --- Painel de Monitoramento e Gestão de Agentes ---
     path("agentes/", views.painel_agentes, name="painel_agentes"),
-    # NOVA ROTA: Necessária para cadastrar os mecânicos e eles aparecerem no formulário
     path("agentes/recrutar/", views.recrutar_agente, name="recrutar_agente"),
     
     # --- Cadastros de Base (Cliente e Veículo) ---
-    path("cadastro/", views.mostrar_cadastro_unificado, name="cadastrar_tudo"),
+    # AJUSTADO: Agora o nome coincide com o redirect das views
+    path("cadastro/", views.mostrar_cadastro_unificado, name="mostrar_cadastro_unificado"),
     path("criar_cliente/", views.criar_cliente, name="criar_cliente"),
     path("criar_veiculo/", views.criar_veiculo, name="criar_veiculo"),
     
     # --- Operações de Serviço (Dossiês) ---
     path("servico/", views.criar_servico, name="criar_servico"),
     
-    # Rota de Edição: Permite alterar o mecânico ou relatório de um serviço já salvo
+    # Rota de Edição
     path("servico/editar/<int:pk>/", views.editar_servico, name="editar_servico"),
 ]
