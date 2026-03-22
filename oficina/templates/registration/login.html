@@ -1,10 +1,12 @@
 {% extends "oficina/base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="auth-wrapper d-flex align-items-center justify-content-center">
-    
+<div class="auth-page-container">
+    <div class="auth-bg-overlay"></div>
+
     <div class="container">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center align-items-center" style="min-height: 90vh;">
             <div class="col-md-4">
                 
                 <div class="card shadow-lg border-0 bg-white-90">
@@ -45,30 +47,47 @@
                     </div>
                     
                     <div class="card-footer text-center bg-transparent border-0 pb-3">
-                        <small class="text-muted">Sistema de Gestão Automotiva v2.0</small>
+                        <small class="text-muted fw-bold">Sistema de Gestão Automotiva v2.0</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
 </div>
 
 <style>
-    /* CSS específico para esta página para garantir o fundo */
-    .auth-wrapper {
-        min-height: 85vh; /* Ajustado para não brigar com a navbar */
-        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-                    url('/static/img/login2.png'); /* Verifique se o nome da imagem está correto */
-        background-size: cover;
-        background-position: center;
-        border-radius: 15px;
-        margin-top: 20px;
+    /* 1. Remove limites e preenche a tela toda */
+    .auth-page-container {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        margin-top: -24px; /* Compensa a margem da base.html se necessário */
     }
 
+    .auth-bg-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url("{% static 'img/login2.png' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1; /* Fica atrás de tudo */
+    }
+
+    /* 2. Card com efeito de vidro (Glassmorphism) */
     .bg-white-90 {
-        background-color: rgba(255, 255, 255, 0.92) !important;
-        backdrop-filter: blur(5px); /* Efeito de vidro embaçado moderno */
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(10px); 
+        border-radius: 15px;
+    }
+
+    /* 3. Ajuste para esconder scroll desnecessário */
+    body {
+        overflow-x: hidden;
     }
 </style>
 {% endblock %}
