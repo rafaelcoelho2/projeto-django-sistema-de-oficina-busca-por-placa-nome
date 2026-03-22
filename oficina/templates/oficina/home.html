@@ -1,93 +1,120 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oficina - Home</title>
+{% extends "oficina/base.html" %}
+{% load static %}
 
-    {% load static %}
+{% block content %}
+<style>
+    /* Resetando margens que o Bootstrap pode colocar e ajustando o fundo */
+    body {
+        margin: 0;
+        padding: 0;
+        background-image: url("{% static 'img/operacaoo.png' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: white;
+        font-family: 'Arial', sans-serif;
+    }
 
-    <style>
-        /* ... Seus estilos anteriores mantidos ... */
-        * { box-sizing: border-box; }
+    /* Ajuste para a navbar não cobrir o conteúdo */
+    .home-overlay {
+        background: rgba(0, 0, 0, 0.7);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-image: url("{% static 'img/operacaoo.png' %}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-            width: 100%;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
+    .menu-container {
+        padding-top: 50px;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-        .container {
-            background: rgba(0, 0, 0, 0.7); /* Escureci um pouco mais para destacar o neon */
-            width: 100%;
-            height: 100%;
-            padding-top: 80px;
-            padding-left: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
+    h1 {
+        margin-bottom: 40px;
+        text-shadow: 2px 2px 10px #000;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: bold;
+        color: #fff;
+    }
 
-        h1 {
-            margin-bottom: 40px;
-            margin-left: 10px;
-            text-shadow: 2px 2px 4px #000000;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    .nav-btn {
+        display: block;
+        font-size: 18px;
+        margin: 10px 0;
+        color: #fff;
+        text-decoration: none;
+        padding: 15px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        width: 320px;
+        border-radius: 5px;
+        transition: 0.3s;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+    }
 
-        a {
-            display: block;
-            font-size: 18px;
-            margin: 10px 0;
-            color: #fff;
-            text-decoration: none;
-            padding: 15px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            width: 320px;
-            border-radius: 5px;
-            transition: 0.3s;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.5);
-            text-transform: uppercase;
-        }
+    .nav-btn:hover {
+        background: #28a745; 
+        color: white;
+        border-color: #28a745;
+        transform: translateX(10px);
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+    }
 
-        a:hover {
-            background: #28a745; /* Verde para combinar com o tema de operação */
-            color: white;
-            border-color: #28a745;
-            transform: translateX(10px);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
-        }
+    .btn-agentes {
+        border-color: #0f0 !important;
+        color: #0f0 !important;
+    }
 
-        /* Destaque especial para o Painel de Agentes */
-        .btn-agentes {
-            border-color: #0f0;
-            color: #0f0;
-        }
-    </style>
-</head>
+    /* Garante que o conteúdo apareça acima do overlay */
+    .content-wrapper {
+        position: relative;
+        z-index: 1;
+    }
+</style>
 
-<body>
-    <div class="container">
-        <h1>Sistema de Inteligência Mecânica</h1>
+<div class="home-overlay"></div>
 
-        <a href="{% url 'mostrar_cadastro_unificado' %}" role="button">Registrar Veículo / Cliente</a>
+<div class="content-wrapper">
+    <div class="menu-container">
+        <h1><i class="bi bi-shield-lock"></i> Inteligência Mecânica</h1>
 
-        <a href="{% url 'criar_servico' %}">Novo Relatório de Serviço</a>
-        <a href="{% url 'buscar' %}">Localizar Veículo (Busca)</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'mostrar_cadastro_unificado' %}" class="nav-btn">
+                <i class="bi bi-person-plus"></i> Registrar Veículo / Cliente
+            </a>
 
-        <hr style="width: 320px; border: 0; border-top: 1px solid #333; margin: 20px 0;">
+            <a href="{% url 'criar_servico' %}" class="nav-btn">
+                <i class="bi bi-file-earmark-medical"></i> Novo Relatório de Serviço
+            </a>
+            
+            <a href="{% url 'buscar' %}" class="nav-btn">
+                <i class="bi bi-search"></i> Localizar Veículo (Busca)
+            </a>
 
-        <a href="{% url 'painel_agentes' %}" class="btn-agentes">Painel de Agentes</a>
-        <a href="{% url 'recrutar_agente' %}" style="font-size: 14px; width: 320px; border-style: dashed;">+ Recrutar Novo Mecânico</a>
+            <hr style="width: 320px; border-top: 2px solid #333; margin: 20px 0;">
+
+            <a href="{% url 'painel_agentes' %}" class="nav-btn btn-agentes">
+                <i class="bi bi-person-badge"></i> Painel de Agentes
+            </a>
+            
+            <a href="{% url 'recrutar_agente' %}" class="nav-btn" style="font-size: 14px; border-style: dashed;">
+                <i class="bi bi-person-plus-fill"></i> Recrutar Novo Mecânico
+            </a>
+        {% else %}
+            <p class="mb-4">Acesso restrito a agentes autorizados.</p>
+            <a href="{% url 'login' %}" class="nav-btn" style="background: #007bff; border-color: #007bff;">
+                <i class="bi bi-key"></i> Autenticar no Sistema
+            </a>
+        {% endif %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
