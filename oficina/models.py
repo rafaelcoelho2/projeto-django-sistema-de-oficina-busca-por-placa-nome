@@ -1,6 +1,15 @@
 from django.db import models
+from django.contrib.auth.models import User # Importamos o modelo de Usuário do Django
 
 class Cliente(models.Model):
+    # CHAVE DA PRIVACIDADE: Cada cliente agora pertence a um Usuário
+    usuario = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name="meus_clientes",
+        null=True, # Permitir nulo inicialmente para não quebrar dados antigos
+        blank=True
+    )
     nome = models.CharField(max_length=100, verbose_name="Nome Completo")
     cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF", null=True, blank=True)
     telefone = models.CharField(max_length=20, verbose_name="Telefone/WhatsApp")
@@ -14,6 +23,8 @@ class Cliente(models.Model):
         return self.nome
 
 class Mecanico(models.Model):
+    # Opcional: Você pode travar o mecânico ao usuário também, se desejar
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     nome = models.CharField(max_length=100)
     especialidade = models.CharField(max_length=100, blank=True, null=True)
     ativo = models.BooleanField(default=True)
@@ -24,7 +35,7 @@ class Mecanico(models.Model):
 class Veiculo(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="veiculos")
     modelo = models.CharField(max_length=100)
-    placa = models.CharField(max_length=10, unique=True) # Unique impede placas duplicadas
+    placa = models.CharField(max_length=10, unique=True)
     ano = models.PositiveIntegerField(null=True, blank=True)
     foto_carro = models.ImageField(upload_to='veiculos/', blank=True, null=True) 
     obs_gerais = models.TextField(blank=True, null=True, verbose_name="Observações do Veículo")

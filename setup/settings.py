@@ -12,6 +12,16 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*'] 
 
+
+# Onde o usuário cai logo após logar (mude para o nome da sua view de busca ou home)
+LOGIN_REDIRECT_URL = 'buscar'
+
+# Para onde ele vai quando desloga
+LOGOUT_REDIRECT_URL = 'home'
+
+# Onde fica a tela de login (caso ele tente acessar algo proibido)
+LOGIN_URL = 'login'
+
 # --- APPS ---
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -103,9 +113,3 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-
-# --- ARQUIVOS DE MÍDIA ---
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
