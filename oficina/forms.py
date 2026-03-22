@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from .models import Cliente, Veiculo, Servico, Mecanico
 
 # 1. FORMULÁRIO DE CLIENTE
@@ -6,6 +8,13 @@ class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = ['nome', 'telefone']
+        
+class UsuarioRegistroForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']        
 
 # 2. FORMULÁRIO DE VEÍCULO
 class VeiculoForm(forms.ModelForm):

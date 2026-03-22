@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q, Count
-from django.contrib.auth.decorators import login_required # Protege as telas
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login
 from .models import Cliente, Veiculo, Servico, Mecanico
-from .forms import ClienteForm, VeiculoForm, ServicoForm
+from .forms import ClienteForm, VeiculoForm, ServicoForm, UsuarioRegistroForm
 
 # 1. PÁGINA INICIAL
 def home(request):
@@ -13,13 +14,10 @@ def home(request):
 def buscar(request):
     return render(request, "oficina/busca.html")
 
-# 3. RESULTADO DA BUSCA (Filtra pelo Usuário Logado)
+# 3. RESULTADO DA BUSCA
 @login_required
 def resultados(request):
     query = request.GET.get("q", "").strip()
-    
-    # FILTRO DE PRIVACIDADE: cliente__usuario=request.user
-    # Isso garante que você só veja veículos de clientes que VOCÊ cadastrou.
     veiculos = Veiculo.objects.filter(
         Q(placa__icontains=query) | Q(cliente__nome__icontains=query),
         cliente__usuario=request.user 
@@ -30,25 +28,37 @@ def resultados(request):
         "query": query
     })
 
-# 4. OPERAÇÕES DE SERVIÇO
+# 4. CADASTRO DE USUÁRIO (Aberto para novos mecânicos)
+def cadastrar_usuario(request):
+    if request.method == 'POST':
+        form = UsuarioRegistroForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('buscar')
+    else:
+        form = UsuarioRegistroForm()
+    return render(request, 'registration/cadastrar.html', {'form': form})
+
+# 5. OPERAÇÕES DE SERVIÇO
 @login_required
 def criar_servico(request):
     if request.method == "POST":
         form = ServicoForm(request.POST, request.FILES)
         if form.is_valid():
-            # Aqui não precisamos travar o usuário, pois o Veículo já tem dono
             form.save()
             return redirect('buscar')
     else:
-        # Filtra os veículos no formulário para mostrar apenas os do usuário
         form = ServicoForm()
+        # Garante que o mecânico só escolha veículos da própria oficina
         form.fields['veiculo'].queryset = Veiculo.objects.filter(cliente__usuario=request.user)
+        # Garante que ele só escolha mecânicos da própria oficina
+        form.fields['mecanico'].queryset = Mecanico.objects.filter(usuario=request.user)
         
     return render(request, "oficina/servico_form.html", {"form": form})
 
 @login_required
 def editar_servico(request, pk):
-    # O get_object_or_404 aqui deve garantir que o serviço pertence ao usuário
     servico = get_object_or_404(Servico, pk=pk, veiculo__cliente__usuario=request.user)
     if request.method == "POST":
         form = ServicoForm(request.POST, request.FILES, instance=servico)
@@ -57,12 +67,12 @@ def editar_servico(request, pk):
             return redirect('buscar') 
     else:
         form = ServicoForm(instance=servico)
+        form.fields['veiculo'].queryset = Veiculo.objects.filter(cliente__usuario=request.user)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 5. GESTÃO DE MECÂNICOS
+# 6. GESTÃO DE MECÂNICOS
 @login_required
 def painel_agentes(request):
-    # Mostra apenas mecânicos do usuário (se você adicionou o campo usuario no modelo Mecanico)
     agentes = Mecanico.objects.filter(usuario=request.user).annotate(total_servicos=Count('servicos'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
@@ -75,17 +85,22 @@ def recrutar_agente(request):
             Mecanico.objects.create(
                 nome=nome_agente, 
                 especialidade=especialidade,
-                usuario=request.user # Salva quem recrutou
+                usuario=request.user
             )
             return redirect('painel_agentes')
     return render(request, "oficina/cadastrar_mecanico.html")
 
-# 6. CADASTRO UNIFICADO
+# 7. CADASTRO UNIFICADO
 @login_required
 def mostrar_cadastro_unificado(request):
+    cliente_form = ClienteForm()
+    veiculo_form = VeiculoForm()
+    # Filtra para que no cadastro de veículo só apareçam clientes DESTA oficina
+    veiculo_form.fields['cliente'].queryset = Cliente.objects.filter(usuario=request.user)
+    
     return render(request, "oficina/cadastro_cliente_veiculo.html", {
-        "cliente_form": ClienteForm(),
-        "veiculo_form": VeiculoForm()
+        "cliente_form": cliente_form,
+        "veiculo_form": veiculo_form
     })
 
 @login_required
@@ -94,7 +109,7 @@ def criar_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             cliente = form.save(commit=False)
-            cliente.usuario = request.user # ATRIBUI O DONO
+            cliente.usuario = request.user
             cliente.save()
     return redirect('mostrar_cadastro_unificado') 
 
@@ -103,7 +118,8 @@ def criar_veiculo(request):
     if request.method == "POST":
         form = VeiculoForm(request.POST, request.FILES)
         if form.is_valid():
-            # Como o Veículo é ligado ao Cliente, e o Cliente já tem dono, 
-            # você só precisa garantir que o mecânico não cadastre carro para cliente de outro.
-            form.save()
+            veiculo = form.save(commit=False)
+            # Verifica se o cliente selecionado pertence ao usuário logado (segurança extra)
+            if veiculo.cliente.usuario == request.user:
+                veiculo.save()
     return redirect('mostrar_cadastro_unificado')

@@ -5,6 +5,10 @@ urlpatterns = [
     # --- Navegação Principal ---
     path("", views.home, name="home"),
     
+    # --- Autenticação e Acesso ---
+    # Rota para novos usuários criarem suas contas
+    path("cadastrar/", views.cadastrar_usuario, name="cadastrar"),
+    
     # --- Sistema de Busca e Inteligência ---
     path("buscar/", views.buscar, name="buscar"),
     path("resultados/", views.resultados, name="resultados"),
@@ -14,7 +18,6 @@ urlpatterns = [
     path("agentes/recrutar/", views.recrutar_agente, name="recrutar_agente"),
     
     # --- Cadastros de Base (Cliente e Veículo) ---
-    # AJUSTADO: Agora o nome coincide com o redirect das views
     path("cadastro/", views.mostrar_cadastro_unificado, name="mostrar_cadastro_unificado"),
     path("criar_cliente/", views.criar_cliente, name="criar_cliente"),
     path("criar_veiculo/", views.criar_veiculo, name="criar_veiculo"),
