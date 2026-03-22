@@ -22,6 +22,8 @@ LOGOUT_REDIRECT_URL = 'home'
 # Onde fica a tela de login (caso ele tente acessar algo proibido)
 LOGIN_URL = 'login'
 
+# Quando o usuário deslogar, ele será enviado direto para a tela de login
+LOGOUT_REDIRECT_URL = 'login'
 # --- APPS ---
 INSTALLED_APPS = [
     'django.contrib.admin',
