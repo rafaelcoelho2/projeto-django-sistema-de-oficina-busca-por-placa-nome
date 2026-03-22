@@ -28,7 +28,7 @@ def resultados(request):
         "query": query
     })
 
-# 4. CADASTRO DE USUÁRIO (Aberto para novos mecânicos)
+# 4. CADASTRO DE USUÁRIO
 def cadastrar_usuario(request):
     if request.method == 'POST':
         form = UsuarioRegistroForm(request.POST)
@@ -50,9 +50,7 @@ def criar_servico(request):
             return redirect('buscar')
     else:
         form = ServicoForm()
-        # Garante que o mecânico só escolha veículos da própria oficina
         form.fields['veiculo'].queryset = Veiculo.objects.filter(cliente__usuario=request.user)
-        # Garante que ele só escolha mecânicos da própria oficina
         form.fields['mecanico'].queryset = Mecanico.objects.filter(usuario=request.user)
         
     return render(request, "oficina/servico_form.html", {"form": form})
@@ -68,12 +66,14 @@ def editar_servico(request, pk):
     else:
         form = ServicoForm(instance=servico)
         form.fields['veiculo'].queryset = Veiculo.objects.filter(cliente__usuario=request.user)
+        form.fields['mecanico'].queryset = Mecanico.objects.filter(usuario=request.user)
     return render(request, "oficina/servico_form.html", {"form": form, "editando": True})
 
-# 6. GESTÃO DE MECÂNICOS
+# 6. GESTÃO DE MECÂNICOS (AQUI ESTAVA O ERRO)
 @login_required
 def painel_agentes(request):
-    agentes = Mecanico.objects.filter(usuario=request.user).annotate(total_servicos=Count('servicos'))
+    # CORREÇÃO: Mudado de 'servicos' para 'servico' (nome do modelo em minúsculo)
+    agentes = Mecanico.objects.filter(usuario=request.user).annotate(total_servicos=Count('servico'))
     return render(request, "oficina/painel_agentes.html", {"agentes": agentes})
 
 @login_required
@@ -95,7 +95,6 @@ def recrutar_agente(request):
 def mostrar_cadastro_unificado(request):
     cliente_form = ClienteForm()
     veiculo_form = VeiculoForm()
-    # Filtra para que no cadastro de veículo só apareçam clientes DESTA oficina
     veiculo_form.fields['cliente'].queryset = Cliente.objects.filter(usuario=request.user)
     
     return render(request, "oficina/cadastro_cliente_veiculo.html", {
@@ -119,7 +118,6 @@ def criar_veiculo(request):
         form = VeiculoForm(request.POST, request.FILES)
         if form.is_valid():
             veiculo = form.save(commit=False)
-            # Verifica se o cliente selecionado pertence ao usuário logado (segurança extra)
             if veiculo.cliente.usuario == request.user:
                 veiculo.save()
     return redirect('mostrar_cadastro_unificado')
